@@ -101,28 +101,29 @@ def work():
 
 
 class MainWindow(PySide6.QtWidgets.QMainWindow):
-    def __init__(self, device, sr=None, sample_count=2000, resolution=4):
+    def __init__(self, device, sr=None, sample_count=2000, total_buffer_size=10000, resolution=4):
         super().__init__()
         self.sr = sr if sr else device.maximumSampleRate()
         self.sample_count = sample_count
+        self.total_buffer_size = total_buffer_size  # Total size of the internal buffer
         self.resolution = resolution
 
+        # Create charts and axes
         self._series = PySide6.QtCharts.QLineSeries()
         self._chart = PySide6.QtCharts.QChart()
         self._chart.addSeries(self._series)
+
         self._axis_x = PySide6.QtCharts.QValueAxis()
-        self._axis_x.setRange(0, self.sample_count)
+        self._axis_x.setRange(0, sample_count - 1)
         self._axis_x.setLabelFormat("%g")
         self._axis_x.setTitleText("Samples")
+
         self._axis_y = PySide6.QtCharts.QValueAxis()
         self._axis_y.setRange(-1, 1)
         self._axis_y.setTitleText("Audio level")
 
-        # Add axis
-        self._chart.addAxis(self._axis_x, PySide6.QtCore.Qt.AlignBottom)   # Set X axis at the bottom
-        self._chart.addAxis(self._axis_y, PySide6.QtCore.Qt.AlignLeft)     # Set Y axis on the left
-
-        # Attach the series to the newly added axes
+        self._chart.addAxis(self._axis_x, PySide6.QtCore.Qt.AlignBottom)
+        self._chart.addAxis(self._axis_y, PySide6.QtCore.Qt.AlignLeft)
         self._series.attachAxis(self._axis_x)
         self._series.attachAxis(self._axis_y)
 
@@ -130,24 +131,39 @@ class MainWindow(PySide6.QtWidgets.QMainWindow):
         audio_device_name = device.description()
         self._chart.setTitle(f"Data from the microphone ({audio_device_name})")
 
+        # Set up audio format
         format_audio = PySide6.QtMultimedia.QAudioFormat()
         format_audio.setSampleRate(self.sr)
         format_audio.setChannelCount(1)
         format_audio.setSampleFormat(PySide6.QtMultimedia.QAudioFormat.UInt8)
 
+        # Set up audio input
         self._audio_input = PySide6.QtMultimedia.QAudioSource(device, format_audio, self)
         self._io_device = self._audio_input.start()
         if self._io_device is None:
             error_message = f"Failed to start audio input for {audio_device_name}"
             PySide6.QtWidgets.QMessageBox.critical(self, "Error", error_message)
             raise RuntimeError(error_message)
+
         self._io_device.readyRead.connect(self._readyRead)
 
-        self._chart_view = PySide6.QtCharts.QChartView(self._chart)
-        self.setCentralWidget(self._chart_view)
+        # Create a buffer for audio data
+        self._buffer = [PySide6.QtCore.QPointF(x, 0) for x in range(self.total_buffer_size)]
+        self._series.append(self._buffer[:self.sample_count])  # Initially display the first 2000 points
 
-        self._buffer = [PySide6.QtCore.QPointF(x, 0) for x in range(self.sample_count)]
-        self._series.append(self._buffer)
+        # Set up the chart view and scrollbar
+        self._chart_view = PySide6.QtCharts.QChartView(self._chart)
+        self.scroll_bar = PySide6.QtWidgets.QScrollBar(PySide6.QtCore.Qt.Horizontal)
+        self.scroll_bar.setRange(0, self.total_buffer_size - self.sample_count)
+        self.scroll_bar.valueChanged.connect(self.update_chart_view)
+
+        # Layout to include chart and scroll bar
+        layout = PySide6.QtWidgets.QVBoxLayout()
+        layout.addWidget(self._chart_view)
+        layout.addWidget(self.scroll_bar)
+        central_widget = PySide6.QtWidgets.QWidget()
+        central_widget.setLayout(layout)
+        self.setCentralWidget(central_widget)
 
     def closeEvent(self, event):
         if self._audio_input is not None:
@@ -160,21 +176,32 @@ class MainWindow(PySide6.QtWidgets.QMainWindow):
         available_samples = data.size() // self.resolution
 
         start = 0
-        if (available_samples < self.sample_count):
+        if (available_samples < self.total_buffer_size):
             # Move existing samples left to make room for the new data
-            start = self.sample_count - available_samples
-            for s in range(start):
-                self._buffer[s].setY(self._buffer[s + available_samples].y())
+            start = self.total_buffer_size - available_samples
+            for i in range(start):
+                self._buffer[i].setY(self._buffer[i + available_samples].y())
 
         # Copy new data into the buffer.
         data_index = 0
-        for s in range(start, self.sample_count):
+        for i in range(start, start + available_samples):
             value = (ord(data[data_index]) - 128) / 128
-            self._buffer[s].setY(value)
+            self._buffer[i].setY(value)
             data_index = data_index + self.resolution
 
         # replace the series with the internal buffer
         self._series.replace(self._buffer)
+
+        # Refresh the displayed data
+        self.update_chart_view()
+
+    def update_chart_view(self):
+        # Get the scrollbar position
+        offset = self.scroll_bar.value()
+        # Update the x-axis range based on the scrollbar
+        self._axis_x.setRange(offset, offset + self.sample_count - 1)
+        # Update the visible data for the series
+        self._series.replace(self._buffer[offset:offset + self.sample_count])
 
 
 def main():
