@@ -100,25 +100,23 @@ def work():
     #    librosa.feature.tonnetz
 
 
-SAMPLE_COUNT = 2000
-RESOLUTION = 4
-
-
 class MainWindow(PySide6.QtWidgets.QMainWindow):
-    def __init__(self, device):
+    def __init__(self, device, sr=None, sample_count=2000, resolution=4):
         super().__init__()
+        self.sr = sr if sr else device.maximumSampleRate()
+        self.sample_count = sample_count
+        self.resolution = resolution
 
         self._series = PySide6.QtCharts.QLineSeries()
         self._chart = PySide6.QtCharts.QChart()
         self._chart.addSeries(self._series)
         self._axis_x = PySide6.QtCharts.QValueAxis()
-        self._axis_x.setRange(0, SAMPLE_COUNT)
+        self._axis_x.setRange(0, self.sample_count)
         self._axis_x.setLabelFormat("%g")
         self._axis_x.setTitleText("Samples")
         self._axis_y = PySide6.QtCharts.QValueAxis()
         self._axis_y.setRange(-1, 1)
         self._axis_y.setTitleText("Audio level")
-
 
         # Add axis
         self._chart.addAxis(self._axis_x, PySide6.QtCore.Qt.AlignBottom)   # Set X axis at the bottom
@@ -129,22 +127,26 @@ class MainWindow(PySide6.QtWidgets.QMainWindow):
         self._series.attachAxis(self._axis_y)
 
         self._chart.legend().hide()
-        name = device.description()
-        self._chart.setTitle(f"Data from the microphone ({name})")
+        audio_device_name = device.description()
+        self._chart.setTitle(f"Data from the microphone ({audio_device_name})")
 
         format_audio = PySide6.QtMultimedia.QAudioFormat()
-        format_audio.setSampleRate(device.maximumSampleRate())
+        format_audio.setSampleRate(self.sr)
         format_audio.setChannelCount(1)
         format_audio.setSampleFormat(PySide6.QtMultimedia.QAudioFormat.UInt8)
 
         self._audio_input = PySide6.QtMultimedia.QAudioSource(device, format_audio, self)
         self._io_device = self._audio_input.start()
+        if self._io_device is None:
+            error_message = f"Failed to start audio input for {audio_device_name}"
+            PySide6.QtWidgets.QMessageBox.critical(self, "Error", error_message)
+            raise RuntimeError(error_message)
         self._io_device.readyRead.connect(self._readyRead)
 
         self._chart_view = PySide6.QtCharts.QChartView(self._chart)
         self.setCentralWidget(self._chart_view)
 
-        self._buffer = [PySide6.QtCore.QPointF(x, 0) for x in range(SAMPLE_COUNT)]
+        self._buffer = [PySide6.QtCore.QPointF(x, 0) for x in range(self.sample_count)]
         self._series.append(self._buffer)
 
     def closeEvent(self, event):
@@ -155,18 +157,23 @@ class MainWindow(PySide6.QtWidgets.QMainWindow):
     @PySide6.QtCore.Slot()
     def _readyRead(self):
         data = self._io_device.readAll()
-        available_samples = data.size() // RESOLUTION
+        available_samples = data.size() // self.resolution
+
         start = 0
-        if (available_samples < SAMPLE_COUNT):
-            start = SAMPLE_COUNT - available_samples
+        if (available_samples < self.sample_count):
+            # Move existing samples left to make room for the new data
+            start = self.sample_count - available_samples
             for s in range(start):
                 self._buffer[s].setY(self._buffer[s + available_samples].y())
 
+        # Copy new data into the buffer.
         data_index = 0
-        for s in range(start, SAMPLE_COUNT):
+        for s in range(start, self.sample_count):
             value = (ord(data[data_index]) - 128) / 128
             self._buffer[s].setY(value)
-            data_index = data_index + RESOLUTION
+            data_index = data_index + self.resolution
+
+        # replace the series with the internal buffer
         self._series.replace(self._buffer)
 
 
