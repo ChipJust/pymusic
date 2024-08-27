@@ -14,7 +14,6 @@ Source for pyside6: git clone https://code.qt.io/pyside/pyside-setup
 import argparse
 import pathlib
 import sys
-from PySide6.QtWidgets import QApplication, QLabel
 
 # From notebook
 import matplotlib.pyplot as plt
@@ -35,11 +34,10 @@ from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 #import pandas as pd
 
-from PySide6.QtCharts import QChart, QChartView, QLineSeries, QValueAxis
-from PySide6.QtCore import QPointF, Slot, QByteArray
-#from PySide6.QtMultimedia import (QAudioFormat, QAudioInput, QMediaDevices, QAudioDevice)
+import PySide6.QtCharts
+import PySide6.QtCore
 import PySide6.QtMultimedia
-from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox
+import PySide6.QtWidgets
 
 class LibrosaDemo():
     pass
@@ -106,28 +104,36 @@ SAMPLE_COUNT = 2000
 RESOLUTION = 4
 
 
-class MainWindow(QMainWindow):
+class MainWindow(PySide6.QtWidgets.QMainWindow):
     def __init__(self, device):
         super().__init__()
 
-        self._series = QLineSeries()
-        self._chart = QChart()
+        self._series = PySide6.QtCharts.QLineSeries()
+        self._chart = PySide6.QtCharts.QChart()
         self._chart.addSeries(self._series)
-        self._axis_x = QValueAxis()
+        self._axis_x = PySide6.QtCharts.QValueAxis()
         self._axis_x.setRange(0, SAMPLE_COUNT)
         self._axis_x.setLabelFormat("%g")
         self._axis_x.setTitleText("Samples")
-        self._axis_y = QValueAxis()
+        self._axis_y = PySide6.QtCharts.QValueAxis()
         self._axis_y.setRange(-1, 1)
         self._axis_y.setTitleText("Audio level")
-        self._chart.setAxisX(self._axis_x, self._series)
-        self._chart.setAxisY(self._axis_y, self._series)
+
+
+        # Add axis
+        self._chart.addAxis(self._axis_x, PySide6.QtCore.Qt.AlignBottom)   # Set X axis at the bottom
+        self._chart.addAxis(self._axis_y, PySide6.QtCore.Qt.AlignLeft)     # Set Y axis on the left
+
+        # Attach the series to the newly added axes
+        self._series.attachAxis(self._axis_x)
+        self._series.attachAxis(self._axis_y)
+
         self._chart.legend().hide()
         name = device.description()
         self._chart.setTitle(f"Data from the microphone ({name})")
 
         format_audio = PySide6.QtMultimedia.QAudioFormat()
-        format_audio.setSampleRate(8000)
+        format_audio.setSampleRate(device.maximumSampleRate())
         format_audio.setChannelCount(1)
         format_audio.setSampleFormat(PySide6.QtMultimedia.QAudioFormat.UInt8)
 
@@ -135,10 +141,10 @@ class MainWindow(QMainWindow):
         self._io_device = self._audio_input.start()
         self._io_device.readyRead.connect(self._readyRead)
 
-        self._chart_view = QChartView(self._chart)
+        self._chart_view = PySide6.QtCharts.QChartView(self._chart)
         self.setCentralWidget(self._chart_view)
 
-        self._buffer = [QPointF(x, 0) for x in range(SAMPLE_COUNT)]
+        self._buffer = [PySide6.QtCore.QPointF(x, 0) for x in range(SAMPLE_COUNT)]
         self._series.append(self._buffer)
 
     def closeEvent(self, event):
@@ -146,7 +152,7 @@ class MainWindow(QMainWindow):
             self._audio_input.stop()
         event.accept()
 
-    @Slot()
+    @PySide6.QtCore.Slot()
     def _readyRead(self):
         data = self._io_device.readAll()
         available_samples = data.size() // RESOLUTION
@@ -169,7 +175,7 @@ def main():
     print(f"{args=}, {remaining=}")
 
     # Create the application instance
-    app = QApplication(remaining)
+    app = PySide6.QtWidgets.QApplication(remaining)
 
     input_devices = PySide6.QtMultimedia.QMediaDevices.audioInputs()
     for device in input_devices:
@@ -181,7 +187,7 @@ def main():
         print(f"  channelConfiguration() = {device.channelConfiguration()}")
         print(f"  maximumSampleRate() = {device.maximumSampleRate()}")
     if not input_devices:
-        QMessageBox.warning(None, "audio", "There is no audio input device available.")
+        PySide6.QtWidgets.QMessageBox.warning(None, "audio", "There is no audio input device available.")
         sys.exit(-1)
 
     main_win = MainWindow(input_devices[0])
