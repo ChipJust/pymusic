@@ -11,10 +11,12 @@ import PySide6.QtWidgets
 
 
 class QWidgetWindow(PySide6.QtWidgets.QWidget):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, title="File Dialog", default_dir=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.title = title
+        self.default_dir = default_dir if default_dir else pathlib.Path(__file__).parent
 
-        self.setWindowTitle('PyQt File Dialog')
+        self.setWindowTitle(self.title)
         self.setGeometry(100, 100, 400, 100)
 
         layout = PySide6.QtWidgets.QGridLayout()
@@ -33,8 +35,8 @@ class QWidgetWindow(PySide6.QtWidgets.QWidget):
         filename, ok = PySide6.QtWidgets.QFileDialog.getOpenFileName(
             self,
             "Select a File", 
-            "D:\\icons\\avatar\\", 
-            "Images (*.png *.jpg)"
+            str(self.default_dir),
+            "Any File Type (*.*);;Python (*.py);;Json (*.json)"
         )
         if filename:
             path = pathlib.Path(filename)
