@@ -2,10 +2,12 @@
 r""" ime.py - Integrated Music Environment
 
 
-# Example: Creating a file in the app directory
-file_path = os.path.join(app_dir, "app_data.txt")
-with open(file_path, 'w') as f:
-    f.write("Application data goes here")
+In case you need to store some app data not using QSettings
+    app_dir = pathlib.Path(platformdirs.user_data_dir(
+        appname=APPLICATION_TLA,
+        appauthor=False,
+        ensure_exists=True))
+You may want to use this to download https://github.com/adactio/TheSession-data
 
 """
 import platformdirs
@@ -38,8 +40,27 @@ class imeMainWindow(PySide6.QtWidgets.QMainWindow):
         # Restore geometry and state
         self.restore_settings()
 
+        # Set the title bar
         self.setWindowTitle(self.title)
         self.setWindowIcon(PySide6.QtGui.QIcon('./assets/eigth_rest_icon.svg'))
+
+        # Menu bar
+        self.menu_bar = self.menuBar()
+
+        # File menu
+        self.file_menu = self.menu_bar.addMenu('&File')
+        self.file_menu.addAction('New File', lambda: print('New File'))
+        self.file_menu.addAction('Open File', lambda: print('Open File'))
+
+        # Edit menu
+        self.edit_menu = self.menu_bar.addMenu('&Edit')
+        self.edit_menu.addAction('Undo', lambda: print('Undo'))
+        self.edit_menu.addAction('Redo', lambda: print('Redo'))
+
+        # Help menu
+        self.help_menu = self.menu_bar.addMenu('&Help')
+        self.help_menu.addAction('About', lambda: print('About'))
+
 
     def save_settings(self):
         self.settings.setValue("geometry", self.saveGeometry())
