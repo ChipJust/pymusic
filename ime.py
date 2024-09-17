@@ -49,17 +49,26 @@ class imeMainWindow(PySide6.QtWidgets.QMainWindow):
 
         # File menu
         self.file_menu = self.menu_bar.addMenu('&File')
-        self.file_menu.addAction('New File', lambda: print('New File'))
-        self.file_menu.addAction('Open File', lambda: print('Open File'))
+        self.file_menu.addAction('New File', lambda: print('File: New File')) # bugbug: todo
+
+        open_action = PySide6.QtGui.QAction(PySide6.QtGui.QIcon('./assets/arrow-down-from-arc.svg'), 'File: Open File', self)
+        open_action.setShortcut('Ctrl+O')
+        open_action.triggered.connect(self.open_file_dialog)
+        #self.filename_edit = PySide6.QtWidgets.QLineEdit() # used in open_file_dialog
+        self.file_menu.addAction(open_action)
 
         # Edit menu
         self.edit_menu = self.menu_bar.addMenu('&Edit')
-        self.edit_menu.addAction('Undo', lambda: print('Undo'))
-        self.edit_menu.addAction('Redo', lambda: print('Redo'))
+        self.edit_menu.addAction('Undo', lambda: print('Edit: Undo')) # bugbug: todo
+        self.edit_menu.addAction('Redo', lambda: print('Edit: Redo')) # bugbug: todo
+
+        # View menu
+        self.view_menu = self.menu_bar.addMenu('&View')
+        self.view_menu.addAction('Mixer', lambda: print('View: Mixer')) # bugbug: todo
 
         # Help menu
         self.help_menu = self.menu_bar.addMenu('&Help')
-        self.help_menu.addAction('About', lambda: print('About'))
+        self.help_menu.addAction('About', lambda: print('Help: About')) # bugbug: todo
 
 
     def save_settings(self):
@@ -81,6 +90,29 @@ class imeMainWindow(PySide6.QtWidgets.QMainWindow):
         self.save_settings()
         super().closeEvent(event)
 
+    def open_file_dialog(self):
+        filename, ok = PySide6.QtWidgets.QFileDialog.getOpenFileName(
+            self,
+            "Select a File",
+            str(self.default_dir),
+            "Any File Type (*.*);;Python (*.py);;Json (*.json)"
+        )
+        print(f"{filename=}, {ok=}")
+        path = pathlib.Path(filename)
+        #if filename:
+        #    path = pathlib.Path(filename)
+        #    #self.filename_edit.setText(str(path))
+        print(f"{path=}")
+        # bugbug: connect this file to a track, i.e. put it in the track
+        # To accomplish this we must first define a starting data structure for
+        # tracks and for a track.
+        # Then we must make some sort of list view of the current tracks such
+        # that the user may select one (as similar to QFileDialog look and feel
+        # as possible).
+        # This dialog must have a button for adding a new track, which pops up
+        # a form to populate information about the track, such that all data
+        # defined to be part of its structure exists, either defaulted or user
+        # provided.
 
 def parse():
     parser = argparse.ArgumentParser(
