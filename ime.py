@@ -49,6 +49,31 @@ def load_actions(parent):
 
         parent.attached_actions[module_name] = module.attach_action(parent)
 
+# newrel: consider moving this to a data file, e.g. menu.json
+application_menu = [
+    ('&File',
+        [
+            'new_file',
+            'open_file',
+        ]
+    ),
+    ('&Edit',
+        [
+            'undo',
+            'redo',
+        ]
+    ),
+    ('&View',
+        [
+            'mixer',
+        ]
+    ),
+    ('&Help',
+        [
+            'about',
+        ]
+    ),
+]
 
 class imeMainWindow(PySide6.QtWidgets.QMainWindow):
     title = APPLICATION_TITLE
@@ -70,31 +95,26 @@ class imeMainWindow(PySide6.QtWidgets.QMainWindow):
         self.setWindowTitle(self.title)
         self.setWindowIcon(PySide6.QtGui.QIcon('./assets/eigth_rest_icon2.svg'))
 
-        # Menu bar
-        self.menu_bar = self.menuBar()
+        # Status Bar
+        self.status_bar = PySide6.QtWidgets.QStatusBar()
+        self.setStatusBar(self.status_bar)
 
         # Process the actions folder to instantiate all actions, attaching them to this window object.
+        self.status_bar.showMessage("Loading actions...")
         load_actions(self)
-        print(f"{self.attached_actions.keys()=}")
+        self.status_bar.showMessage(f"{len(self.attached_actions.keys())} actions loaded.")
 
 
-        # File menu
-        self.file_menu = self.menu_bar.addMenu('&File')
-        self.file_menu.addAction('New File', lambda: print('File: New File')) # bugbug: todo
-        self.file_menu.addAction(self.attached_actions['open_file'])
-
-        # Edit menu
-        self.edit_menu = self.menu_bar.addMenu('&Edit')
-        self.edit_menu.addAction('Undo', lambda: print('Edit: Undo')) # bugbug: todo
-        self.edit_menu.addAction('Redo', lambda: print('Edit: Redo')) # bugbug: todo
-
-        # View menu
-        self.view_menu = self.menu_bar.addMenu('&View')
-        self.view_menu.addAction('Mixer', lambda: print('View: Mixer')) # bugbug: todo
-
-        # Help menu
-        self.help_menu = self.menu_bar.addMenu('&Help')
-        self.help_menu.addAction('About', lambda: print('Help: About')) # bugbug: todo
+        # Menu bar
+        self.menu_bar = self.menuBar()
+        for menu_name, action_list in application_menu:
+            menu = self.menu_bar.addMenu(menu_name)
+            for action_name in action_list:
+                if action_name in self.attached_actions:
+                    menu.addAction(self.attached_actions[action_name])
+                    continue
+                # newrel: add some way to put a seperator in the menu
+                menu.addAction(action_name, lambda m=menu_name, a=action_name: print(f'{m}: {a}'))
 
         # Tool Bar
         self.toolbar = PySide6.QtWidgets.QToolBar('Main toolbar')
@@ -102,10 +122,7 @@ class imeMainWindow(PySide6.QtWidgets.QMainWindow):
         self.addToolBar(self.toolbar)
         self.toolbar.addAction(self.attached_actions['open_file'])
 
-        # Status Bar
-        self.status_bar = PySide6.QtWidgets.QStatusBar()
-        self.setStatusBar(self.status_bar)
-        self.status_bar.showMessage('Integrated Music Environment initialization complete')
+        #self.status_bar.showMessage('Integrated Music Environment initialization complete')
 
     def save_settings(self):
         self.settings.setValue("geometry", self.saveGeometry())
