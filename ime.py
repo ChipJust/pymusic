@@ -9,18 +9,13 @@ In case you need to store some app data not using QSettings
         ensure_exists=True))
 You may want to use this to download https://github.com/adactio/TheSession-data
 
-We need a way to manage actions modularly
-    Seems like each action is global to the application
-    But the data the the action manipulates is not always defined close to the manipulation
-    And the tendency is for the action to be a method of the main window's class, which is going to lead to a very large class...
-    How can we put each action in its own file and integrate them into the main class
-    Adding the action to the correct menu also seems like coupling to me
-
 """
 import platformdirs
 import argparse
 import pathlib
 import sys
+import importlib
+import inspect
 
 import PySide6.QtWidgets
 import PySide6.QtGui
@@ -32,6 +27,29 @@ APPLICATION_TLA = "ime"
 APPLICATION_TITLE = "Integrated Music Environment"
 
 
+def load_actions(parent):
+    if not hasattr(parent, 'attached_actions'):
+        parent.attached_actions = dict()
+
+    # Define the directory path for the actions folder relative to the current file
+    actions_dir = pathlib.Path(__file__).parent / 'actions'
+
+    # Iterate over all Python files in the actions directory
+    for action_file in actions_dir.glob('*.py'):
+        module_name = action_file.stem
+        module = importlib.import_module(f'actions.{module_name}')
+
+        # Check if the module is a valid action module.
+        if not hasattr(module, 'attach_action'):
+            print(f"Skipped module '{module_name}' as it does not define 'attach_action'.")
+            continue
+        if not inspect.isfunction(module.attach_action):
+            print(f"Skipped module '{module_name}' because 'action_name' in the module is not a function.")
+            continue
+
+        parent.attached_actions[module_name] = module.attach_action(parent)
+
+
 class imeMainWindow(PySide6.QtWidgets.QMainWindow):
     title = APPLICATION_TITLE
     initial_width = 600
@@ -40,6 +58,7 @@ class imeMainWindow(PySide6.QtWidgets.QMainWindow):
     def __init__(self, default_dir=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.default_dir = default_dir if default_dir else pathlib.Path(__file__).parent
+        print(f"{self.default_dir=}")
 
         # Initialize settings
         self.settings = PySide6.QtCore.QSettings(APPLICATION_TLA, APPLICATION_TLA)
@@ -54,15 +73,15 @@ class imeMainWindow(PySide6.QtWidgets.QMainWindow):
         # Menu bar
         self.menu_bar = self.menuBar()
 
+        # Process the actions folder to instantiate all actions, attaching them to this window object.
+        load_actions(self)
+        print(f"{self.attached_actions.keys()=}")
+
+
         # File menu
         self.file_menu = self.menu_bar.addMenu('&File')
         self.file_menu.addAction('New File', lambda: print('File: New File')) # bugbug: todo
-
-        open_action = PySide6.QtGui.QAction(PySide6.QtGui.QIcon('./assets/arrow-down-from-arc.svg'), 'File: Open File', self)
-        open_action.setShortcut('Ctrl+O')
-        open_action.triggered.connect(self.open_file_dialog)
-        #self.filename_edit = PySide6.QtWidgets.QLineEdit() # used in open_file_dialog
-        self.file_menu.addAction(open_action)
+        self.file_menu.addAction(self.attached_actions['open_file'])
 
         # Edit menu
         self.edit_menu = self.menu_bar.addMenu('&Edit')
@@ -79,8 +98,9 @@ class imeMainWindow(PySide6.QtWidgets.QMainWindow):
 
         # Tool Bar
         self.toolbar = PySide6.QtWidgets.QToolBar('Main toolbar')
+        self.toolbar.setObjectName('MainToolbar')
         self.addToolBar(self.toolbar)
-        self.toolbar.addAction(open_action)
+        self.toolbar.addAction(self.attached_actions['open_file'])
 
         # Status Bar
         self.status_bar = PySide6.QtWidgets.QStatusBar()
@@ -106,29 +126,6 @@ class imeMainWindow(PySide6.QtWidgets.QMainWindow):
         self.save_settings()
         super().closeEvent(event)
 
-    def open_file_dialog(self):
-        filename, ok = PySide6.QtWidgets.QFileDialog.getOpenFileName(
-            self,
-            "Select a File",
-            str(self.default_dir),
-            "Any File Type (*.*);;Python (*.py);;Json (*.json)"
-        )
-        print(f"{filename=}, {ok=}")
-        path = pathlib.Path(filename)
-        #if filename:
-        #    path = pathlib.Path(filename)
-        #    #self.filename_edit.setText(str(path))
-        print(f"{path=}")
-        # bugbug: connect this file to a track, i.e. put it in the track
-        # To accomplish this we must first define a starting data structure for
-        # tracks and for a track.
-        # Then we must make some sort of list view of the current tracks such
-        # that the user may select one (as similar to QFileDialog look and feel
-        # as possible).
-        # This dialog must have a button for adding a new track, which pops up
-        # a form to populate information about the track, such that all data
-        # defined to be part of its structure exists, either defaulted or user
-        # provided.
 
 def parse():
     parser = argparse.ArgumentParser(
