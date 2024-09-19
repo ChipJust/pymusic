@@ -9,6 +9,13 @@ In case you need to store some app data not using QSettings
         ensure_exists=True))
 You may want to use this to download https://github.com/adactio/TheSession-data
 
+We need a way to manage actions modularly
+    Seems like each action is global to the application
+    But the data the the action manipulates is not always defined close to the manipulation
+    And the tendency is for the action to be a method of the main window's class, which is going to lead to a very large class...
+    How can we put each action in its own file and integrate them into the main class
+    Adding the action to the correct menu also seems like coupling to me
+
 """
 import platformdirs
 import argparse
@@ -42,7 +49,7 @@ class imeMainWindow(PySide6.QtWidgets.QMainWindow):
 
         # Set the title bar
         self.setWindowTitle(self.title)
-        self.setWindowIcon(PySide6.QtGui.QIcon('./assets/eigth_rest_icon.svg'))
+        self.setWindowIcon(PySide6.QtGui.QIcon('./assets/eigth_rest_icon2.svg'))
 
         # Menu bar
         self.menu_bar = self.menuBar()
@@ -70,6 +77,15 @@ class imeMainWindow(PySide6.QtWidgets.QMainWindow):
         self.help_menu = self.menu_bar.addMenu('&Help')
         self.help_menu.addAction('About', lambda: print('Help: About')) # bugbug: todo
 
+        # Tool Bar
+        self.toolbar = PySide6.QtWidgets.QToolBar('Main toolbar')
+        self.addToolBar(self.toolbar)
+        self.toolbar.addAction(open_action)
+
+        # Status Bar
+        self.status_bar = PySide6.QtWidgets.QStatusBar()
+        self.setStatusBar(self.status_bar)
+        self.status_bar.showMessage('Integrated Music Environment initialization complete')
 
     def save_settings(self):
         self.settings.setValue("geometry", self.saveGeometry())
