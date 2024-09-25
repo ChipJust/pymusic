@@ -20,6 +20,8 @@ import inspect
 import PySide6.QtWidgets
 import PySide6.QtGui
 import PySide6.QtCore
+import PySide6.QtMultimedia
+
 
 # The application three letter acronymn is used to prefix classes and serves as
 # the public name, pronounced "i me" sort of like pronouns
@@ -49,12 +51,13 @@ def load_actions(parent):
 
         parent.attached_actions[module_name] = module.attach_action(parent)
 
+
 # newrel: consider moving this to a data file, e.g. menu.json
 application_menu = [
     ('&File',
         [
-            'new_file',
-            'open_file',
+            'file_new',
+            'file_open',
         ]
     ),
     ('&Edit',
@@ -75,6 +78,21 @@ application_menu = [
     ),
 ]
 
+application_toolbar = [
+    'file_open',
+    'undo',
+    'redo',
+]
+
+player_buttons = [
+    'player_back',
+    'player_forward',
+    'player_record',
+    'player_play',
+    'player_stop',
+    'player_pause',
+]
+
 class imeMainWindow(PySide6.QtWidgets.QMainWindow):
     title = APPLICATION_TITLE
     initial_width = 600
@@ -93,7 +111,7 @@ class imeMainWindow(PySide6.QtWidgets.QMainWindow):
 
         # Set the title bar
         self.setWindowTitle(self.title)
-        self.setWindowIcon(PySide6.QtGui.QIcon('./assets/eigth_rest_icon2.svg'))
+        self.setWindowIcon(PySide6.QtGui.QIcon('./assets/ime-logo.svg'))
 
         # Status Bar
         self.status_bar = PySide6.QtWidgets.QStatusBar()
@@ -104,23 +122,54 @@ class imeMainWindow(PySide6.QtWidgets.QMainWindow):
         load_actions(self)
         self.status_bar.showMessage(f"{len(self.attached_actions.keys())} actions loaded.")
 
-
         # Menu bar
         self.menu_bar = self.menuBar()
         for menu_name, action_list in application_menu:
             menu = self.menu_bar.addMenu(menu_name)
             for action_name in action_list:
-                if action_name in self.attached_actions:
-                    menu.addAction(self.attached_actions[action_name])
-                    continue
                 # newrel: add some way to put a seperator in the menu
-                menu.addAction(action_name, lambda m=menu_name, a=action_name: print(f'{m}: {a}'))
+                if action_name not in self.attached_actions:
+                    print(f"Menu item '{menu_name}: {action_name}' missing module 'actions/{action_name}.py'")
+                    menu.addAction(action_name, lambda m=menu_name, a=action_name: print(f"Menu item '{m}: {a}' missing module 'actions/{a}.py'"))
+                    continue
+                menu.addAction(self.attached_actions[action_name])
 
         # Tool Bar
         self.toolbar = PySide6.QtWidgets.QToolBar('Main toolbar')
         self.toolbar.setObjectName('MainToolbar')
         self.addToolBar(self.toolbar)
-        self.toolbar.addAction(self.attached_actions['open_file'])
+        for action_name in application_toolbar:
+            if action_name not in self.attached_actions:
+                print(f"Toolbar action '{action_name}' missing module 'actions/{action_name}.py'")
+                continue
+            self.toolbar.addAction(self.attached_actions[action_name])
+
+        # Track list, or track area
+
+        # Player controls
+        self.player = PySide6.QtMultimedia.QMediaPlayer()
+        self.audio_output = PySide6.QtMultimedia.QAudioOutput()
+        self.player.setAudioOutput(self.audio_output)
+        self.audio_output.setVolume(1.0)  # Set volume with float in range 0.0 to 1.0
+
+        player_row = PySide6.QtWidgets.QHBoxLayout()
+        for action_name in player_buttons:
+            if action_name not in self.attached_actions:
+                print(f"Player button is missing '{action_name}'")
+                continue
+            button = PySide6.QtWidgets.QPushButton()
+            button.setIcon(self.attached_actions[action_name].icon())
+            button.clicked.connect(self.attached_actions[action_name].trigger)
+            button.setSizePolicy(PySide6.QtWidgets.QSizePolicy.Fixed, PySide6.QtWidgets.QSizePolicy.Fixed)
+            player_row.addWidget(button, alignment=PySide6.QtCore.Qt.AlignLeft)
+
+        container = PySide6.QtWidgets.QWidget()
+        container.setLayout(player_row)
+        self.setCentralWidget(container)
+
+        self.player.setSource("D:/Reaper/Rock of Ages/Rock of Ages.wav")  # bugbug: connect this to whatever the final is or mix to or something...
+
+        # Mixer
 
         #self.status_bar.showMessage('Integrated Music Environment initialization complete')
 

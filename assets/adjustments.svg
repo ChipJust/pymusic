@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+category: System
+tags: [equalizer, sliders, controls, settings, filter]
+version: "1.0"
+unicode: "ea03"
+-->
+
+<svg
+   width="24"
+   height="24"
+   viewBox="0 0 24 24"
+   fill="none"
+   stroke="currentColor"
+   stroke-width="2"
+   stroke-linecap="round"
+   stroke-linejoin="round"
+   version="1.1"
+   id="svg9"
+   sodipodi:docname="adjustments.svg"
+   inkscape:version="1.3.2 (091e20e, 2023-11-25, custom)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs9" />
+  <sodipodi:namedview
+     id="namedview9"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="77.791667"
+     inkscape:cx="12"
+     inkscape:cy="12"
+     inkscape:window-width="3840"
+     inkscape:window-height="2081"
+     inkscape:window-x="-9"
+     inkscape:window-y="-9"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg9" />
+  <path
+     d="M4 10a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"
+     id="path1"
+     style="stroke:#182d0e;stroke-opacity:1" />
+  <path
+     d="M6 4v4"
+     id="path2"
+     style="stroke:#182d0e;stroke-opacity:1" />
+  <path
+     d="M6 12v8"
+     id="path3"
+     style="stroke:#182d0e;stroke-opacity:1" />
+  <path
+     d="M10 16a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"
+     id="path4"
+     style="stroke:#182d0e;stroke-opacity:1" />
+  <path
+     d="M12 4v10"
+     id="path5"
+     style="stroke:#182d0e;stroke-opacity:1" />
+  <path
+     d="M12 18v2"
+     id="path6"
+     style="stroke:#182d0e;stroke-opacity:1" />
+  <path
+     d="M16 7a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"
+     id="path7"
+     style="stroke:#182d0e;stroke-opacity:1" />
+  <path
+     d="M18 4v1"
+     id="path8"
+     style="stroke:#182d0e;stroke-opacity:1" />
+  <path
+     d="M18 9v11"
+     id="path9"
+     style="stroke:#182d0e;stroke-opacity:1" />
+</svg>

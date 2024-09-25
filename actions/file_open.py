@@ -1,7 +1,7 @@
 #!python3
-r""" open_file.py - open_file action module
+r""" file_open.py - file_open action module
 
-This module publishes the open_file action.
+This module publishes the file_open action.
 The main window's constructor loads this module and calls the attach_action
 function, passing the main window's object.
 This module must instantiate the action and attach both the action and its
@@ -12,16 +12,20 @@ import pathlib
 import PySide6.QtWidgets
 import PySide6.QtGui
 
+icon = PySide6.QtGui.QIcon('./assets/file_open.svg')
 
 def attach_action(parent):
-    open_action = PySide6.QtGui.QAction(PySide6.QtGui.QIcon('./assets/arrow-down-from-arc2.svg'), 'Open File', parent)
-    open_action.setShortcut('Ctrl+O')
-    parent.open_file_dialog = open_file_dialog.__get__(parent)
-    open_action.triggered.connect(parent.open_file_dialog)
-    return open_action
+    a = PySide6.QtGui.QAction(
+        icon,
+        'Open File',
+        parent)
+    a.setShortcut('Ctrl+O')
+    parent.file_open_dialog = file_open_dialog.__get__(parent)
+    a.triggered.connect(parent.file_open_dialog)
+    return a
 
 
-def open_file_dialog(self):
+def file_open_dialog(self):
     filename, ok = PySide6.QtWidgets.QFileDialog.getOpenFileName(
         self,
         "Select a File",
