@@ -2,25 +2,37 @@
 r""" ime.py - Integrated Music Environment
 
 
+
 In case you need to store some app data not using QSettings
+    import platformdirs
     app_dir = pathlib.Path(platformdirs.user_data_dir(
         appname=APPLICATION_TLA,
         appauthor=False,
         ensure_exists=True))
 You may want to use this to download https://github.com/adactio/TheSession-data
 
+
+import PySide6.QtWidgets
+import PySide6.QtGui
+import PySide6.QtCore
+import PySide6.QtMultimedia
+
 """
-import platformdirs
+
+# Standard Imports
 import argparse
 import pathlib
 import sys
 import importlib
 import inspect
 
+# Thrid party imports
+import PySide6
 import PySide6.QtWidgets
-import PySide6.QtGui
-import PySide6.QtCore
 import PySide6.QtMultimedia
+
+# Our imports
+import ImeMixerView
 
 
 # The application three letter acronymn is used to prefix classes and serves as
@@ -84,14 +96,6 @@ application_toolbar = [
     'redo',
 ]
 
-player_buttons = [
-    'player_back',
-    'player_forward',
-    'player_record',
-    'player_play',
-    'player_stop',
-    'player_pause',
-]
 
 class imeMainWindow(PySide6.QtWidgets.QMainWindow):
     title = APPLICATION_TITLE
@@ -144,32 +148,15 @@ class imeMainWindow(PySide6.QtWidgets.QMainWindow):
                 continue
             self.toolbar.addAction(self.attached_actions[action_name])
 
-        # Track list, or track area
+        # Central Widget is between the toolbar and the status bar
+        # This is the content area for the application.
+        self.content = PySide6.QtWidgets.QStackedWidget()
+        self.setCentralWidget(self.content)
+        # now add the pages in...each page or view is a widget
+        self.mixer_view = ImeMixerView.ImeMixerView(self)
+        # newrel: add something to manage view constructors and add the rest of the views
+        self.content.addWidget(self.mixer_view)
 
-        # Player controls
-        self.player = PySide6.QtMultimedia.QMediaPlayer()
-        self.audio_output = PySide6.QtMultimedia.QAudioOutput()
-        self.player.setAudioOutput(self.audio_output)
-        self.audio_output.setVolume(1.0)  # Set volume with float in range 0.0 to 1.0
-
-        player_row = PySide6.QtWidgets.QHBoxLayout()
-        for action_name in player_buttons:
-            if action_name not in self.attached_actions:
-                print(f"Player button is missing '{action_name}'")
-                continue
-            button = PySide6.QtWidgets.QPushButton()
-            button.setIcon(self.attached_actions[action_name].icon())
-            button.clicked.connect(self.attached_actions[action_name].trigger)
-            button.setSizePolicy(PySide6.QtWidgets.QSizePolicy.Fixed, PySide6.QtWidgets.QSizePolicy.Fixed)
-            player_row.addWidget(button, alignment=PySide6.QtCore.Qt.AlignLeft)
-
-        container = PySide6.QtWidgets.QWidget()
-        container.setLayout(player_row)
-        self.setCentralWidget(container)
-
-        self.player.setSource("D:/Reaper/Rock of Ages/Rock of Ages.wav")  # bugbug: connect this to whatever the final is or mix to or something...
-
-        # Mixer
 
         #self.status_bar.showMessage('Integrated Music Environment initialization complete')
 
