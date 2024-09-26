@@ -32,7 +32,10 @@ class ImeAudioPlayer(PySide6.QtMultimedia.QMediaPlayer):
         self.setSource("D:/Reaper/Rock of Ages/Rock of Ages.wav")  # bugbug: connect this to whatever the final is or mix to or something...
 
         self.widget = PySide6.QtWidgets.QWidget()
+        self.widget.setSizePolicy(PySide6.QtWidgets.QSizePolicy.Fixed, PySide6.QtWidgets.QSizePolicy.Fixed)
         layout = PySide6.QtWidgets.QHBoxLayout(self.widget)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
         for action_name in player_buttons:
             if action_name not in attached_actions:
                 print(f"Player button is missing '{action_name}'")

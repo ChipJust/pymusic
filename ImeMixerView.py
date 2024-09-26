@@ -30,5 +30,7 @@ class ImeMixerView(PySide6.QtWidgets.QWidget):
         # Player controls
         parent.player = ImeAudioPlayer.ImeAudioPlayer(self, attached_actions=parent.attached_actions)
         player_row_layout.addWidget(parent.player.widget)
-        player_row_layout.addWidget(PySide6.QtWidgets.QLabel("The rest of the player_row"))
+        player_row_layout.addWidget(PySide6.QtWidgets.QLabel("QLabel after the player"))
+        player_row_layout.addWidget(PySide6.QtWidgets.QLabel("QLabel at end of row"))
+        player_row_layout.setContentsMargins(0, 0, 0, 0)
 
