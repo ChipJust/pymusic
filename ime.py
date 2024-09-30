@@ -90,10 +90,12 @@ application_menu = [
     ),
 ]
 
+SEPARATOR = '-'
 application_toolbar = [
-    'file_open',
     'undo',
     'redo',
+    SEPARATOR,
+    'mixer',
 ]
 
 
@@ -106,6 +108,9 @@ class imeMainWindow(PySide6.QtWidgets.QMainWindow):
         super().__init__(*args, **kwargs)
         self.default_dir = default_dir if default_dir else pathlib.Path(__file__).parent
         print(f"{self.default_dir=}")
+
+        # Track list
+        self.tracks = list()
 
         # Initialize settings
         self.settings = PySide6.QtCore.QSettings(APPLICATION_TLA, APPLICATION_TLA)
@@ -131,7 +136,6 @@ class imeMainWindow(PySide6.QtWidgets.QMainWindow):
         for menu_name, action_list in application_menu:
             menu = self.menu_bar.addMenu(menu_name)
             for action_name in action_list:
-                # newrel: add some way to put a seperator in the menu
                 if action_name not in self.attached_actions:
                     print(f"Menu item '{menu_name}: {action_name}' missing module 'actions/{action_name}.py'")
                     menu.addAction(action_name, lambda m=menu_name, a=action_name: print(f"Menu item '{m}: {a}' missing module 'actions/{a}.py'"))
@@ -143,6 +147,9 @@ class imeMainWindow(PySide6.QtWidgets.QMainWindow):
         self.toolbar.setObjectName('MainToolbar')
         self.addToolBar(self.toolbar)
         for action_name in application_toolbar:
+            if action_name == SEPARATOR:
+                self.toolbar.addSeparator()
+                continue
             if action_name not in self.attached_actions:
                 print(f"Toolbar action '{action_name}' missing module 'actions/{action_name}.py'")
                 continue
@@ -156,6 +163,7 @@ class imeMainWindow(PySide6.QtWidgets.QMainWindow):
         self.mixer_view = ImeMixerView.ImeMixerView(self)
         # newrel: add something to manage view constructors and add the rest of the views
         self.content.addWidget(self.mixer_view)
+
 
 
         #self.status_bar.showMessage('Integrated Music Environment initialization complete')
