@@ -20,17 +20,25 @@ class ImeMixerView(PySide6.QtWidgets.QWidget):
             raise ValueError(f"The parent passed to {self.__class__.__name__} must have an attached_actions attribute")
         super().__init__(parent)
 
-        layout = PySide6.QtWidgets.QVBoxLayout(self) # passing self to the constructor does self.setLayout(layout) automatically
+        # This is the main layout for the mixer view, a vertical box.
+        # There are three rows in this box: track area, player controls and mix area
+        # passing self to the constructor does self.setLayout(layout) automatically
+        layout = PySide6.QtWidgets.QVBoxLayout(self)
+
+        # Track area
         layout.addWidget(PySide6.QtWidgets.QLabel("ImeMixerView: track area"))
+
+        # Player controls
         player_row = PySide6.QtWidgets.QWidget()
         player_row_layout = PySide6.QtWidgets.QHBoxLayout(player_row)
         layout.addWidget(player_row)
-        layout.addWidget(PySide6.QtWidgets.QLabel("ImeMixerView: mixer area"))
-
-        # Player controls
         parent.player = ImeAudioPlayer.ImeAudioPlayer(self, attached_actions=parent.attached_actions)
         player_row_layout.addWidget(parent.player.widget)
         player_row_layout.addWidget(PySide6.QtWidgets.QLabel("QLabel after the player"))
         player_row_layout.addWidget(PySide6.QtWidgets.QLabel("QLabel at end of row"))
         player_row_layout.setContentsMargins(0, 0, 0, 0)
+
+        # Mix area
+        layout.addWidget(PySide6.QtWidgets.QLabel("ImeMixerView: mixer area"))
+
 

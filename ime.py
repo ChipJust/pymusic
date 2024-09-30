@@ -118,9 +118,23 @@ class imeMainWindow(PySide6.QtWidgets.QMainWindow):
         # Restore geometry and state
         self.restore_settings()
 
+        # newrel: make a project data structure to save information about the
+        #         project. The settings should just hold a pointer to the last
+        #         project, which we should open here if no project was passed
+        #         in the constructor, by the way we should replace default_dir
+        #         with this project name and make the default directory be the
+        #         directory of the project file.
+
+        # newrel: update the cli such that we can register a file association
+        #         with the project file's extension, pass the filename into
+        #         this script and forward that information to the constructor
+        #         such that the user can double-click the project file to open
+        #         the project to its current state.
+
         # Set the title bar
         self.setWindowTitle(self.title)
         self.setWindowIcon(PySide6.QtGui.QIcon('./assets/ime-logo.svg'))
+        # newrel: make the pin menu icon use ime-logo
 
         # Status Bar
         self.status_bar = PySide6.QtWidgets.QStatusBar()
@@ -162,6 +176,7 @@ class imeMainWindow(PySide6.QtWidgets.QMainWindow):
         # now add the pages in...each page or view is a widget
         self.mixer_view = ImeMixerView.ImeMixerView(self)
         # newrel: add something to manage view constructors and add the rest of the views
+        #         update the mixer action to switch to the mixer_view index in the stack
         self.content.addWidget(self.mixer_view)
 
 
