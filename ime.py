@@ -33,6 +33,7 @@ import PySide6.QtMultimedia
 
 # Our imports
 import ImeMixerView
+import ImeTrack
 
 
 # The application three letter acronymn is used to prefix classes and serves as
@@ -111,6 +112,7 @@ class imeMainWindow(PySide6.QtWidgets.QMainWindow):
 
         # Track list
         self.tracks = list()
+        self.tracks.append(ImeTrack.ImeTrack("D:/Reaper/Rock of Ages/Rock of Ages.wav")) # bugbug: test code, please delete
 
         # Initialize settings
         self.settings = PySide6.QtCore.QSettings(APPLICATION_TLA, APPLICATION_TLA)
