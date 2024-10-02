@@ -20,6 +20,7 @@ class ImeMixerView(PySide6.QtWidgets.QWidget):
         if not hasattr(parent, 'tracks'):
             raise ValueError(f"The parent passed to {self.__class__.__name__} must have an tracks attribute")
         super().__init__(parent)
+        self.parent = parent
 
         # This is the main layout for the mixer view, a vertical box.
         # There are three rows in this box: track area, player controls and mix area
@@ -32,13 +33,8 @@ class ImeMixerView(PySide6.QtWidgets.QWidget):
         self.track_area.setHorizontalHeaderLabels(["Track", "Contents"])
         #self.track_area.horizontalHeader().setVisible(False)
         #self.track_area.verticalHeader().setVisible(False)
-        self.track_area.setRowCount(len(parent.tracks))
-        for row, track in enumerate(parent.tracks):
-            track_handle = ImeTrack.ImeTrackHandle(self.track_area, track)
-            self.track_area.setCellWidget(row, 0, track_handle)
-            #contents_item = QTableWidgetItem(track["contents"])
-            #self.track_area.setItem(row, 1, contents_item)
-
+        parent.tracks.tracks_changed_signal.connect(self.update_track_table)
+        self.update_track_table()
         layout.addWidget(self.track_area)
 
         # Player controls
@@ -54,4 +50,11 @@ class ImeMixerView(PySide6.QtWidgets.QWidget):
         # Mix area
         layout.addWidget(PySide6.QtWidgets.QLabel("ImeMixerView: mixer area"))
 
-
+    def update_track_table(self):
+        self.track_area.setRowCount(len(self.parent.tracks))
+        for row, track in enumerate(self.parent.tracks):
+            track_handle = ImeTrack.ImeTrackHandle(self.track_area, track)
+            self.track_area.setCellWidget(row, 0, track_handle)
+            # bugbug: implement the content view
+            #contents_item = PySide6.QtWidgets.QTableWidgetItem(str(track.wavs))
+            #self.track_area.setItem(row, 1, contents_item)

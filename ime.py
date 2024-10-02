@@ -111,7 +111,7 @@ class imeMainWindow(PySide6.QtWidgets.QMainWindow):
         print(f"{self.default_dir=}")
 
         # Track list
-        self.tracks = list()
+        self.tracks = ImeTrack.ImeTrackCollection()
         self.tracks.append(ImeTrack.ImeTrack("D:/Reaper/Rock of Ages/Rock of Ages.wav")) # bugbug: test code, please delete
 
         # Initialize settings
