@@ -8,46 +8,44 @@ import PySide6
 import ImeAudioPlayer
 import ImeTrack
 
-
 class ImeMixerView(PySide6.QtWidgets.QWidget):
-    # The view we are doing now is the "Reaper" view, which is providing
-    # the functionality that we get from the REAPER DAW published by Cockos
-    # see: https://www.reaper.fm/
-    # Since Reaper is TM we will call this the "mixer" view.
     def __init__(self, parent):
-        if not parent:
-            raise ValueError(f"{self.__class__.__name__} must have valid parent")
-        if not hasattr(parent, 'tracks'):
-            raise ValueError(f"The parent passed to {self.__class__.__name__} must have an tracks attribute")
         super().__init__(parent)
+        self._validate_parent(parent)
         self.parent = parent
 
-        # This is the main layout for the mixer view, a vertical box.
-        # There are three rows in this box: track area, player controls and mix area
-        # passing self to the constructor does self.setLayout(layout) automatically
         layout = PySide6.QtWidgets.QVBoxLayout(self)
 
-        # Track area
+        self._setup_track_area(layout)
+        self._setup_player_controls(layout)
+        self._setup_mix_area(layout)
+
+    def _validate_parent(self, parent):
+        if not parent:
+            raise ValueError(f"{self.__class__.__name__} must have a valid parent")
+        if not hasattr(parent, 'tracks'):
+            raise ValueError(f"The parent of {self.__class__.__name__} must have a 'tracks' attribute")
+
+    def _setup_track_area(self, layout):
         self.track_area = PySide6.QtWidgets.QTableWidget()
         self.track_area.setColumnCount(2)
         self.track_area.setHorizontalHeaderLabels(["Track", "Contents"])
-        #self.track_area.horizontalHeader().setVisible(False)
-        #self.track_area.verticalHeader().setVisible(False)
-        parent.tracks.tracks_changed_signal.connect(self.update_track_table)
+        self.parent.tracks.tracks_changed_signal.connect(self.update_track_table)
         self.update_track_table()
         layout.addWidget(self.track_area)
 
-        # Player controls
+    def _setup_player_controls(self, layout):
         player_row = PySide6.QtWidgets.QWidget()
         player_row_layout = PySide6.QtWidgets.QHBoxLayout(player_row)
-        layout.addWidget(player_row)
-        parent.player = ImeAudioPlayer.ImeAudioPlayer(self, attached_actions=parent.attached_actions)
-        player_row_layout.addWidget(parent.player.widget)
+        self.parent.player = ImeAudioPlayer.ImeAudioPlayer(self, attached_actions=self.parent.attached_actions)
+        player_row_layout.addWidget(self.parent.player.widget)
         player_row_layout.addWidget(PySide6.QtWidgets.QLabel("QLabel after the player"))
         player_row_layout.addWidget(PySide6.QtWidgets.QLabel("QLabel at end of row"))
         player_row_layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(player_row)
 
-        # Mix area
+    def _setup_mix_area(self, layout):
+        # TODO: Implement actual mixing controls
         layout.addWidget(PySide6.QtWidgets.QLabel("ImeMixerView: mixer area"))
 
     def update_track_table(self):

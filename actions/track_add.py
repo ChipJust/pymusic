@@ -4,7 +4,7 @@ r""" track_add.py
 
 
 """
-import PySide6.QtGui
+import PySide6
 
 
 def attach_action(parent):
@@ -12,7 +12,7 @@ def attach_action(parent):
         PySide6.QtGui.QIcon('./assets/track_add.svg'),
         'track_add',
         parent)
-    #a.setShortcut('Ctrl+P')
+    a.setShortcut(PySide6.QtGui.QKeySequence(PySide6.QtCore.Qt.CTRL | PySide6.QtCore.Qt.Key_T))
     parent.track_add = track_add.__get__(parent)
     a.triggered.connect(parent.track_add)
     return a

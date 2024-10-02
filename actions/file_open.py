@@ -9,18 +9,18 @@ related callback to the main window object, parent.
 
 """
 import pathlib
-import PySide6.QtWidgets
-import PySide6.QtGui
+
+import PySide6
+
 import ImeTrack
 
-icon = PySide6.QtGui.QIcon('./assets/file_open.svg')
 
 def attach_action(parent):
     a = PySide6.QtGui.QAction(
-        icon,
+        PySide6.QtGui.QIcon('./assets/file_open.svg'),
         'Open File',
         parent)
-    a.setShortcut('Ctrl+O')
+    a.setShortcut(PySide6.QtGui.QKeySequence(PySide6.QtCore.Qt.CTRL | PySide6.QtCore.Qt.Key_O))
     parent.file_open_dialog = file_open_dialog.__get__(parent)
     a.triggered.connect(parent.file_open_dialog)
     return a
@@ -36,5 +36,6 @@ def file_open_dialog(self):
     print(f"{filename=}, {ok=}")
     path = pathlib.Path(filename)
     print(f"{path=}")
-    self.tracks.append(ImeTrack.ImeTrack(filename))
+    if filename:
+        self.tracks.append(ImeTrack.ImeTrack(filename))
 

@@ -46,6 +46,9 @@ class ImeTrackHandle(PySide6.QtWidgets.QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
 
+        # newrel: add missing elements to this control and improve its look
+        #         record arm button, mute, solo
+
         self.track_name = PySide6.QtWidgets.QLineEdit(track.name)
         self.track_name.editingFinished.connect(self.edit_track_name)
         layout.addWidget(self.track_name)
@@ -58,28 +61,10 @@ class ImeTrackHandle(PySide6.QtWidgets.QWidget):
         # reflect the track object's update to the track_name
         self.track_name.setText(value)
 
-"""
-    def __init__(self, *args): The constructor to initialize your custom list. It should accept an optional iterable to populate the list initially.
-    def __len__(self): Returns the number of elements in the list.
-    def __getitem__(self, index): Accesses the element at the given index.
-    def __setitem__(self, index, value): Sets the element at the given index to value.
-    def __delitem__(self, index): Deletes the element at the given index.
-    def __iter__(self): Enables iteration over the list.
-    def __contains__(self, item): Checks if the list contains the specified item.
-    def __str__(self): Returns a string representation of the list.
-    def __repr__(self): Returns a string representation suitable for debugging.
 
-    def append(self, item): Adds an item to the end of the list.
-    def extend(self, iterable): Appends elements from an iterable to the list.
-    def insert(self, index, item): Inserts an item at the specified index.
-    def remove(self, item): Removes the first occurrence of the specified item.
-    def pop(self, index=-1): Removes and returns the element at the given index (defaults to the last).
-    def index(self, item): Returns the index of the first occurrence of the specified item.
-    def count(self, item): Returns the number of occurrences of the specified item.
-    def reverse(self): Reverses the order of elements in the list (in-place).
-    def sort(self, key=None, reverse=False): Sorts the list in-place (optional key and reverse arguments).
-    def clear(self): Removes all items from the list.
-"""
+# newrel: add class for track content widget
+#         update ImeMixerView.update_track_table to instantiate this class and
+#         add it to the table
 
 
 class ImeTrackCollection(PySide6.QtCore.QObject):

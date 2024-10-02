@@ -84,6 +84,12 @@ application_menu = [
             'mixer',
         ]
     ),
+    ('&Track',
+        [
+            'track_add',
+            'track_del',
+        ]
+    ),
     ('&Help',
         [
             'about',
@@ -170,6 +176,12 @@ class imeMainWindow(PySide6.QtWidgets.QMainWindow):
                 print(f"Toolbar action '{action_name}' missing module 'actions/{action_name}.py'")
                 continue
             self.toolbar.addAction(self.attached_actions[action_name])
+
+        # newrel: if any action is not in the menu then that action's shortcut will not work
+        #         add some code here to check for actions that are in self.attached_actions
+        #         but are not in either the menu_bar or toolbar
+        #         print a warning message...
+        #         alternately, we could add the to a misc menu...
 
         # Central Widget is between the toolbar and the status bar
         # This is the content area for the application.
