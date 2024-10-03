@@ -3,8 +3,10 @@ r""" ImeAudioPlayer.py
 
 
 
+    Copyright (c) 2024 Chip Ueltschey All rights reserved.
 """
 import PySide6
+import PySide6.QtMultimedia
 
 
 player_buttons = [

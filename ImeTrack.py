@@ -3,9 +3,12 @@ r""" ImeTrack.py
 
 
 
+    Copyright (c) 2024 Chip Ueltschey All rights reserved.
 """
 import typing
 import PySide6
+import PySide6.QtWidgets
+
 
 class ImeTrack(PySide6.QtCore.QObject):
     name_changed_signal = PySide6.QtCore.Signal(str)

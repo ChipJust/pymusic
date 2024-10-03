@@ -7,6 +7,7 @@ This readme has notes about things I am investigating or would like to investiga
 * https://muse.dillfrog.com/about/help
 * https://stackoverflow.com/questions/875476/editing-a-wav-files-using-python
 * https://www.youtube.com/watch?v=KyP2a0Ms2-c
+* https://refactoring.guru/
 
 
 # Data Layers

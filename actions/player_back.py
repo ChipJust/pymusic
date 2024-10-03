@@ -3,6 +3,7 @@ r""" player_back.py
 
 
 
+    Copyright (c) 2024 Chip Ueltschey All rights reserved.
 """
 import PySide6.QtGui
 

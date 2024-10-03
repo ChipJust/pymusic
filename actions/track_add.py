@@ -3,6 +3,7 @@ r""" track_add.py
 
 
 
+    Copyright (c) 2024 Chip Ueltschey All rights reserved.
 """
 import PySide6
 

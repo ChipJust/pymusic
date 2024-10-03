@@ -3,6 +3,7 @@ r""" player_pause.py
 
 
 
+    Copyright (c) 2024 Chip Ueltschey All rights reserved.
 """
 import PySide6.QtGui
 import PySide6.QtMultimedia

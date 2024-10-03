@@ -17,6 +17,7 @@ import PySide6.QtGui
 import PySide6.QtCore
 import PySide6.QtMultimedia
 
+    Copyright (c) 2024 Chip Ueltschey All rights reserved.
 """
 
 # Standard Imports
@@ -28,8 +29,6 @@ import inspect
 
 # Thrid party imports
 import PySide6
-import PySide6.QtWidgets
-import PySide6.QtMultimedia
 
 # Our imports
 import ImeMixerView
@@ -167,9 +166,8 @@ class ImeMainWindow(PySide6.QtWidgets.QMainWindow):
         unmapped_actions = self.attached_actions.keys() - mapped_actions
         if unmapped_actions:
             menu = self.menu_bar.addMenu('&Unmapped')
-            for action_name in unmapped_actions:
+            for action_name in sorted(unmapped_actions):
                 menu.addAction(self.attached_actions[action_name])
-
 
         # Central Widget is between the toolbar and the status bar
         # This is the content area for the application.

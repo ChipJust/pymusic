@@ -3,6 +3,7 @@ r""" redo.py
 
 
 
+    Copyright (c) 2024 Chip Ueltschey All rights reserved.
 """
 import PySide6.QtGui
 

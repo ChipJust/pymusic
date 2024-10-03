@@ -7,6 +7,7 @@ function, passing the main window's object.
 This module must instantiate the action and attach both the action and its
 related callback to the main window object, parent.
 
+    Copyright (c) 2024 Chip Ueltschey All rights reserved.
 """
 import pathlib
 

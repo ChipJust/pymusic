@@ -2,6 +2,7 @@ r""" ImeMixerView.py
 
 
 
+    Copyright (c) 2024 Chip Ueltschey All rights reserved.
 """
 import PySide6
 
@@ -45,7 +46,7 @@ class ImeMixerView(PySide6.QtWidgets.QWidget):
         layout.addWidget(player_row)
 
     def _setup_mix_area(self, layout):
-        # TODO: Implement actual mixing controls
+        # bugbug: implement mixing controls
         layout.addWidget(PySide6.QtWidgets.QLabel("ImeMixerView: mixer area"))
 
     def update_track_table(self):

@@ -3,6 +3,7 @@ r""" ImeActionManager.py
 
 
 
+    Copyright (c) 2024 Chip Ueltschey All rights reserved.
 """
 import pathlib
 import importlib
