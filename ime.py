@@ -34,35 +34,13 @@ import PySide6.QtMultimedia
 # Our imports
 import ImeMixerView
 import ImeTrack
+import ImeActionManager
 
 
 # The application three letter acronymn is used to prefix classes and serves as
 # the public name, pronounced "i me" sort of like pronouns
 APPLICATION_TLA = "ime"
 APPLICATION_TITLE = "Integrated Music Environment"
-
-
-def load_actions(parent):
-    if not hasattr(parent, 'attached_actions'):
-        parent.attached_actions = dict()
-
-    # Define the directory path for the actions folder relative to the current file
-    actions_dir = pathlib.Path(__file__).parent / 'actions'
-
-    # Iterate over all Python files in the actions directory
-    for action_file in actions_dir.glob('*.py'):
-        module_name = action_file.stem
-        module = importlib.import_module(f'actions.{module_name}')
-
-        # Check if the module is a valid action module.
-        if not hasattr(module, 'attach_action'):
-            print(f"Skipped module '{module_name}' as it does not define 'attach_action'.")
-            continue
-        if not inspect.isfunction(module.attach_action):
-            print(f"Skipped module '{module_name}' because 'action_name' in the module is not a function.")
-            continue
-
-        parent.attached_actions[module_name] = module.attach_action(parent)
 
 
 # newrel: consider moving this to a data file, e.g. menu.json
@@ -118,7 +96,6 @@ class imeMainWindow(PySide6.QtWidgets.QMainWindow):
 
         # Track list
         self.tracks = ImeTrack.ImeTrackCollection()
-        self.tracks.append(ImeTrack.ImeTrack("D:/Reaper/Rock of Ages/Rock of Ages.wav")) # bugbug: test code, please delete
 
         # Initialize settings
         self.settings = PySide6.QtCore.QSettings(APPLICATION_TLA, APPLICATION_TLA)
@@ -150,7 +127,8 @@ class imeMainWindow(PySide6.QtWidgets.QMainWindow):
 
         # Process the actions folder to instantiate all actions, attaching them to this window object.
         self.status_bar.showMessage("Loading actions...")
-        load_actions(self)
+        self.attached_actions = ImeActionManager.ImeActionManager(self)
+        print(f"{repr(self.attached_actions)}\n{str(self.attached_actions)}")
         self.status_bar.showMessage(f"{len(self.attached_actions.keys())} actions loaded.")
 
         # Menu bar
