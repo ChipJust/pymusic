@@ -84,7 +84,7 @@ application_toolbar = [
 ]
 
 
-class imeMainWindow(PySide6.QtWidgets.QMainWindow):
+class ImeMainWindow(PySide6.QtWidgets.QMainWindow):
     title = APPLICATION_TITLE
     initial_width = 600
     initial_height = 200
@@ -131,6 +131,12 @@ class imeMainWindow(PySide6.QtWidgets.QMainWindow):
         print(f"{repr(self.attached_actions)}\n{str(self.attached_actions)}")
         self.status_bar.showMessage(f"{len(self.attached_actions.keys())} actions loaded.")
 
+        # Any action that does not map to either the menu or the toolbar will
+        # not be fully functional. In particular the shortcut, if there is one,
+        # will not work. To mitigte this problem we will add these to a special
+        # menu at the end.
+        mapped_actions = set()
+
         # Menu bar
         self.menu_bar = self.menuBar()
         for menu_name, action_list in application_menu:
@@ -141,6 +147,7 @@ class imeMainWindow(PySide6.QtWidgets.QMainWindow):
                     menu.addAction(action_name, lambda m=menu_name, a=action_name: print(f"Menu item '{m}: {a}' missing module 'actions/{a}.py'"))
                     continue
                 menu.addAction(self.attached_actions[action_name])
+                mapped_actions.add(action_name)
 
         # Tool Bar
         self.toolbar = PySide6.QtWidgets.QToolBar('Main toolbar')
@@ -154,12 +161,15 @@ class imeMainWindow(PySide6.QtWidgets.QMainWindow):
                 print(f"Toolbar action '{action_name}' missing module 'actions/{action_name}.py'")
                 continue
             self.toolbar.addAction(self.attached_actions[action_name])
+            mapped_actions.add(action_name)
 
-        # newrel: if any action is not in the menu then that action's shortcut will not work
-        #         add some code here to check for actions that are in self.attached_actions
-        #         but are not in either the menu_bar or toolbar
-        #         print a warning message...
-        #         alternately, we could add the to a misc menu...
+        # Add all unmapped actions to a new menu
+        unmapped_actions = self.attached_actions.keys() - mapped_actions
+        if unmapped_actions:
+            menu = self.menu_bar.addMenu('&Unmapped')
+            for action_name in unmapped_actions:
+                menu.addAction(self.attached_actions[action_name])
+
 
         # Central Widget is between the toolbar and the status bar
         # This is the content area for the application.
@@ -209,7 +219,7 @@ def main():
     # Create the application instance
     app = PySide6.QtWidgets.QApplication(remaining)
 
-    ime = imeMainWindow()
+    ime = ImeMainWindow()
     ime.show()
 
     # Run the application's event loop

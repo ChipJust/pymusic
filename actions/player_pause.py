@@ -13,7 +13,7 @@ def attach_action(parent):
         PySide6.QtGui.QIcon('./assets/player_pause.svg'),
         'Pause',
         parent)
-    #a.setShortcut('Ctrl+P')
+    a.setShortcut(PySide6.QtCore.Qt.Key_Space)
     parent.player_pause = player_pause.__get__(parent)
     a.triggered.connect(parent.player_pause)
     return a
