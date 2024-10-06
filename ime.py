@@ -102,6 +102,7 @@ class ImeMainWindow(PySide6.QtWidgets.QMainWindow):
         # Restore geometry and state
         self.restore_settings()
 
+
         # newrel: make a project data structure to save information about the
         #         project. The settings should just hold a pointer to the last
         #         project, which we should open here if no project was passed
@@ -118,6 +119,8 @@ class ImeMainWindow(PySide6.QtWidgets.QMainWindow):
         # Set the title bar
         self.setWindowTitle(self.title)
         self.setWindowIcon(PySide6.QtGui.QIcon('./assets/ime-logo.svg'))
+        self.setWindowFlags(PySide6.QtCore.Qt.Window) # bugbug: what are all the flags and how are they set by default
+
         # newrel: make the pin menu icon use ime-logo
 
         # Status Bar

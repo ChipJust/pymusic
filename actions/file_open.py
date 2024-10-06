@@ -9,7 +9,6 @@ related callback to the main window object, parent.
 
     Copyright (c) 2024 Chip Ueltschey All rights reserved.
 """
-import pathlib
 
 import PySide6
 
@@ -32,11 +31,12 @@ def file_open_dialog(self):
         self,
         "Select a File",
         str(self.default_dir),
-        "Any File Type (*.*);;Python (*.py);;Json (*.json)"
+        "Wave File (*.wav)"
     )
     print(f"{filename=}, {ok=}")
-    path = pathlib.Path(filename)
-    print(f"{path=}")
     if filename:
-        self.tracks.append(ImeTrack.ImeTrack(filename))
+        new_track = ImeTrack.ImeTrack(filename)
+        new_track.add_wav(filename)
+        self.tracks.append(new_track)
+    print(f"added to {self.tracks=}")
 

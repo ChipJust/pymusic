@@ -6,9 +6,14 @@ r""" ImeTrack.py
     Copyright (c) 2024 Chip Ueltschey All rights reserved.
 """
 import typing
+import wave
+
+import numpy
+
 import PySide6
 import PySide6.QtWidgets
 
+import ImeWave
 
 class ImeTrack(PySide6.QtCore.QObject):
     name_changed_signal = PySide6.QtCore.Signal(str)
@@ -18,7 +23,11 @@ class ImeTrack(PySide6.QtCore.QObject):
         self._name = name
         # maybe a list or dict of wav files
         # and some way to process that list to produce a signal at the project time
-        self.wavs = dict()
+        self.ws = dict()
+        # bugbug: connect these to the ImeTrackHandle and ImeTrackMixer
+        self.mute = False
+        self.volume = 1.0
+        self.pan = 0
 
     @PySide6.QtCore.Property(str, notify=name_changed_signal)
     def name(self):
@@ -30,7 +39,31 @@ class ImeTrack(PySide6.QtCore.QObject):
         self.name_changed_signal.emit(value)
 
     def add_wav(self, filename):
-        self.wav[filename] = open(filename, 'rb')
+        with wave.open(filename, 'rb') as f:
+            nchannels = f.getnchannels()
+            nframes = f.getnframes()
+            sampwidth = f.getsampwidth()
+            framerate = f.getframerate()
+            z_str = f.readframes(nframes)
+
+        dtype_map = {1: numpy.int8, 2: numpy.int16, 3: "special", 4: numpy.int32}
+        if sampwidth not in dtype_map:
+            raise ValueError(f"{sampwidth=} unknown")
+        if sampwidth == 3:
+            xs = numpy.fromstring(z_str, dtype=numpy.int8).astype(numpy.int32)
+            ys = (xs[2::3] * 256 + xs[1::3]) * 256 + xs[0::3]
+        else:
+            ys = numpy.fromstring(z_str, dtype=dtype_map[sampwidth])
+
+        # if it's in stereo, just pull out the first channel
+        # bugbug: maybe mix it down?
+        if nchannels == 2:
+            ys = ys[::2]
+
+        w = ImeWave.ImeWave(ys, framerate=framerate)
+        w.normalize()
+
+        self.ws[filename] = w
 
 
 class ImeTrackHandle(PySide6.QtWidgets.QWidget):
@@ -68,10 +101,15 @@ class ImeTrackHandle(PySide6.QtWidgets.QWidget):
 # newrel: add class for track content widget
 #         update ImeMixerView.update_track_table to instantiate this class and
 #         add it to the table
+class ImeTrackMixer(PySide6.QtWidgets.QWidget):
+    def __init__(self, parent, track):
+        super().__init__(parent)
 
 
 class ImeTrackCollection(PySide6.QtCore.QObject):
     tracks_changed_signal = PySide6.QtCore.Signal()
+
+    # This is a list-like container that emits a signal when the list changes.
 
     def __init__(self, initial_tracks: typing.Iterable[typing.Any] = ()):
         super().__init__()

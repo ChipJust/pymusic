@@ -52,6 +52,7 @@ https://ismir.net/<br>
 [QML](https://doc.qt.io/qtforpython-6/PySide6/QtQml/index.html#module-PySide6.QtQml)<br>
 [State Chart XML (SCXML): State Machine Notation for Control Abstraction](https://www.w3.org/TR/scxml/) supported by [PySide6.QtScxml](https://doc.qt.io/qtforpython-6/PySide6/QtScxml/index.html#module-PySide6.QtScxml)<br>
 [Rendering SVG Files](https://doc.qt.io/qtforpython-6/overviews/svgrendering.html#rendering-svg-files)<br>
+[Implementing an Audio Mixer, Part 1; Basic DSP with Qt Multimedia](https://www.kdab.com/implementing-an-audio-mixer-part-1/)
 
 
 # Integrated Music Environment
