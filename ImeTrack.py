@@ -1,7 +1,10 @@
 #!python3
 r""" ImeTrack.py
 
+    ImeTrack bridges the DSP focused ImeWave to the QT toolchain.
+    A ImeTrack is a project level container for one audio data stream.
 
+    bugbug: move each class to its own module
 
     Copyright (c) 2024 Chip Ueltschey All rights reserved.
 """
@@ -26,6 +29,7 @@ class ImeTrack(PySide6.QtCore.QObject):
         self.ws = dict()
         # bugbug: connect these to the ImeTrackHandle and ImeTrackMixer
         self.mute = False
+        self.solo = False
         self.volume = 1.0
         self.pan = 0
 
@@ -39,31 +43,28 @@ class ImeTrack(PySide6.QtCore.QObject):
         self.name_changed_signal.emit(value)
 
     def add_wav(self, filename):
-        with wave.open(filename, 'rb') as f:
-            nchannels = f.getnchannels()
-            nframes = f.getnframes()
-            sampwidth = f.getsampwidth()
-            framerate = f.getframerate()
-            z_str = f.readframes(nframes)
+        self.ws[filename] = ImeWave.ImeWave.from_file(filename)
 
-        dtype_map = {1: numpy.int8, 2: numpy.int16, 3: "special", 4: numpy.int32}
-        if sampwidth not in dtype_map:
-            raise ValueError(f"{sampwidth=} unknown")
-        if sampwidth == 3:
-            xs = numpy.fromstring(z_str, dtype=numpy.int8).astype(numpy.int32)
-            ys = (xs[2::3] * 256 + xs[1::3]) * 256 + xs[0::3]
-        else:
-            ys = numpy.fromstring(z_str, dtype=dtype_map[sampwidth])
+    def getData(self, start, end):
+        # bugbug: what we should be doing is looking up the start and end
+        # frames in an as yet non-existing mapping from project time to wave
+        # data to see which of the ImeWave objects and which location in that
+        # object we should return data from
+        w = next(iter(self.ws.values()))
+        return w.ys[start:end]
 
-        # if it's in stereo, just pull out the first channel
-        # bugbug: maybe mix it down?
-        if nchannels == 2:
-            ys = ys[::2]
+    def totalSize(self):
+        # bugbug: update when implementing map of project time to wav data
+        print(f"ImeTrack({self.name}).totalSize()")
+        w = next(iter(self.ws.values()))
+        return w.totalSize()
 
-        w = ImeWave.ImeWave(ys, framerate=framerate)
-        w.normalize()
 
-        self.ws[filename] = w
+
+    # bugbug: add method for extracting the series data
+    #         Eventually we will need some sort of control structure
+    #         that maps from the ws dict to project time,
+    #         but as a first step, assume one file and provide its data.
 
 
 class ImeTrackHandle(PySide6.QtWidgets.QWidget):

@@ -28,6 +28,11 @@ class ImeMixerView(PySide6.QtWidgets.QWidget):
             raise ValueError(f"The parent of {self.__class__.__name__} must have a 'tracks' attribute")
 
     def _setup_track_area(self, layout):
+        # newrel: maybe this widget should be instantiated in the
+        #         ImeTrackCollection class as the .widget attribute of that
+        #         class self.track_area would be replaced with
+        #         self.parent.tracks.widget and update_track_table could move
+        #         to be a method of ImeTrackCollection
         self.track_area = PySide6.QtWidgets.QTableWidget()
         self.track_area.setColumnCount(2)
         self.track_area.setHorizontalHeaderLabels(["Track", "Contents"])

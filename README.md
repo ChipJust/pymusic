@@ -8,6 +8,8 @@ This readme has notes about things I am investigating or would like to investiga
 * https://stackoverflow.com/questions/875476/editing-a-wav-files-using-python
 * https://www.youtube.com/watch?v=KyP2a0Ms2-c
 * https://refactoring.guru/
+* [Blog post on how wave files work](https://wavefilegem.com/how_wave_files_work.html)
+* [TensorFlow Lite Tutorial Part 1: Wake Word Feature Extraction](https://www.digikey.com/en/maker/projects/tensorflow-lite-tutorial-part-1-wake-word-feature-extraction/54e1ce8520154081a58feb301ef9d87a%E2%80%8B)
 
 
 # Data Layers

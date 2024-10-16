@@ -22,7 +22,4 @@ def attach_action(parent):
 
 def player_pause(self):
     print(f"player_pause")
-    if self.player.playbackState() == PySide6.QtMultimedia.QMediaPlayer.PlaybackState.PlayingState:
-        self.player.pause()
-    else:
-        self.player.play()
+    self.player.pause()

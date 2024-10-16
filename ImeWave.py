@@ -1,15 +1,56 @@
 #!python3
 r""" ImeWave.py
 
+    The ImeWave is the internal representation of wave data,
+    suitable for DSP operations.
+
+    newrel: not all wave files are openable using the wave module.
+            We need to be able to open all wav formats, and we would like to
+            also support making wav data from with mp3 or m4a and possibly
+            other formats. In each case we want to convert to a NumPy array
+            This traceback shows where the problem is in the wave module:
+                Traceback (most recent call last):
+                  File "D:\_code\pymusic\actions\file_open.py", line 39, in file_open_dialog
+                    new_track.add_wav(filename)
+                  File "D:\_code\pymusic\ImeTrack.py", line 45, in add_wav
+                    with wave.open(filename, 'rb') as f:
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^
+                  File "C:\Python312\Lib\wave.py", line 649, in open
+                    return Wave_read(f)
+                           ^^^^^^^^^^^^
+                  File "C:\Python312\Lib\wave.py", line 286, in __init__
+                    self.initfp(f)
+                  File "C:\Python312\Lib\wave.py", line 266, in initfp
+                    self._read_fmt_chunk(chunk)
+                  File "C:\Python312\Lib\wave.py", line 383, in _read_fmt_chunk
+                    raise Error('unknown format: %r' % (wFormatTag,))
+                wave.Error: unknown format: 3
+            We might want to implement the wave file parsing ourselves so we
+            can cover these formats without needing to install other software
+            or codecs.
+                Integer PCM Data Chunk
+                    8
+                    16
+                    24
+                    32
+                Floating Point PCM Data Chunk
+                    32
+                    64
+            Note that Reaper does not seem to be following the specification
+            when it generates some WAV formats. For example it left out the
+            "fact" and it looks like it left out "Extension Size" which should
+            have been present and set to zero for type 3, the FP PCM
+
     This object was based on the Wave class published in
-    https://github.com/AllenDowney/ThinkDSP/blob/master/code/thinkdsp.py
-    The origional license notice:
-    Copyright 2013 Allen B. Downey
-    License: MIT License (https://opensource.org/licenses/MIT)
+        https://github.com/AllenDowney/ThinkDSP/blob/master/code/thinkdsp.py
+        The origional license notice for thinkdsp.py:
+            Copyright 2013 Allen B. Downey
+            License: MIT License (https://opensource.org/licenses/MIT)
 
     Copyright (c) 2024 Chip Ueltschey All rights reserved.
 """
 import copy
+import wave
 
 import numpy
 
@@ -17,7 +58,7 @@ import numpy
 class ImeWave:
     """Represents a discrete-time waveform."""
 
-    def __init__(self, ys, ts=None, framerate=None):
+    def __init__(self, ys, ts=None, framerate=11025, nchannels=1, nframes=0, sampwidth=None):
         """Initializes the wave.
 
         ys: wave array
@@ -25,23 +66,30 @@ class ImeWave:
         framerate: samples per second
         """
         self.ys = numpy.asanyarray(ys)
-        self.framerate = framerate if framerate is not None else 11025
+        self.framerate = framerate
 
         if ts is None:
             self.ts = numpy.arange(len(ys)) / self.framerate
         else:
             self.ts = numpy.asanyarray(ts)
 
+        self.nchannels = nchannels
+        self.nframes = nframes # should be the same as len(ys)...should we assert that?
+        self.sampwidth = sampwidth # in bits - can we get this from inspecting ys?
+
     @classmethod
     def from_file(cls, filename):
-        # bugbug: this does not handle all the types of wav file,
-        #         e.g.: wave.Error: unknown format: 3
+        # bugbug: this is slow for large files, and files are expected to be
+        #         large, so we need to either use some multithreading here or
+        #         defer this work. We could consider doing the file read later.
+
         with wave.open(filename, 'rb') as f:
             nchannels = f.getnchannels()
             nframes = f.getnframes()
             sampwidth = f.getsampwidth()
             framerate = f.getframerate()
             z_str = f.readframes(nframes)
+        print(f"{nchannels=}, {nframes=}, {sampwidth=}, {framerate=}")
 
         dtype_map = {1: numpy.int8, 2: numpy.int16, 3: "special", 4: numpy.int32}
         if sampwidth not in dtype_map:
@@ -52,15 +100,28 @@ class ImeWave:
         else:
             ys = numpy.fromstring(z_str, dtype=dtype_map[sampwidth])
 
-        # if it's in stereo, just pull out the first channel
-        # bugbug: maybe mix it down?
+        # If stereo...
+        # bugbug: maybe mix it down? Or allow stereo signals?
+        #         for now we force nchannels to 1 in the constructor below.
+        #         We could either provice the stereo data, which will require
+        #         a review of all functions to handle stereo or we can mix it
+        #         down to mono, in which case we could possibly drop the
+        #         nchannels from this __init__
         if nchannels == 2:
             ys = ys[::2]
 
-        w = cls(ys, framerate=framerate)
-        w.normalize() # bugbug: is it right to auto-normalize?
+        w = cls(ys, framerate=framerate, nchannels=1, nframes=nframes, sampwidth=sampwidth)
+
+        # bugbug: do we really want to automatically normalize?
+        #         Remove this comment if the answer is yes.
+        #         Remove the following line of code if the answer is no.
+        w.normalize()
 
         return w
+
+    def totalSize(self):
+        print(f"ImeWave().totalSize() = {self.ys.nbytes}")
+        return self.ys.nbytes
 
     def copy(self):
         """Makes a copy.
